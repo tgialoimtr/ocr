@@ -14,8 +14,23 @@ class BatchLinePredictor(object):
         self.getq = server.queue_push
         
     def predict_batch(self, batch_name, img_list, logger):
-        self.putq.put((batch_name, img_list), block=True)
-        logger.debug('put %d imgs to queue put', len(img_list))
+        j = 0
+        l = []
+        for i, img in enumerate(img_list):
+            if i == args.batch_size * j:
+                if len(l) > 0: #push batch to queue
+                    self.putq.put((batch_name + '_' + str(j), l), block=True)
+                    logger.debug('put %d imgs to queue put', len(l))               
+                #reset all
+                l = []
+                j += 1
+            l.append(img)
+        
+        if len(l)> 0:#push what remaining
+            self.putq.put((batch_name + '_' + str(j), l), block=True)
+            logger.debug('put %d imgs to queue put', len(l))
+
+
         pred = {}
         waitcount = 0
         while True:
@@ -23,15 +38,17 @@ class BatchLinePredictor(object):
                 if waitcount > args.qget_wait_count:
                     logger.warning('WAITING SERVER TOO LONG ...') 
                 topqueue = self.getq.get(timeout=args.qget_wait_interval)
-                batchid, texts = topqueue
+                returnname, texts = topqueue
+                [batchid, subpatchid] = returnname.rsplit('_',1)
                 if batchid != batch_name:
                     waitcount += 1
                     self.getq.put((batchid, texts)) 
                     continue
                 else:
                     for i, txt in enumerate(texts):
-                        pred[i] = txt
-                    return pred
+                        pred[(int(subpatchid)-1)*args.batch_size + i] = txt
+                    if len(pred) == len(img_list):
+                        return pred
             except Empty:
                 waitcount += 1       
         
