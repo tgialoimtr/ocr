@@ -17,7 +17,7 @@ class TensorFlowRecognizer(object):
         
     def read(self, imgline):
         idd = str(random.randint(1,999999999))
-        cv2.imwrite('/tmp/cmndlines/' + 'DOB' + idd + '.jpg', imgline)
+        cv2.imwrite('/tmp/cmndlines/' + 'ID' + idd + '.jpg', imgline)
         
         
 if __name__ == '__main__':

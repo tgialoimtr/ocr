@@ -11,6 +11,7 @@ args.numprocess = 1 #CPU:2 #GPU:8
 args.qget_wait_count = 400000
 args.qget_wait_interval = 0.3
 args.stdwidth=32*20
+args.batch_size = 16
 args.bucket_size = 1 #CPU:2 #GPU:16 
 args.bucket_max_time = 10
 args.device = '/device:CPU:0'
