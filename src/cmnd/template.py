@@ -92,13 +92,13 @@ class StaticTemplate(object):
         kp, des = self.keypointCalc.calc(img)
         good = self.keypointCalc.match(self.des, des)
         if len(good) > 10:
-            draw_params = dict(matchColor = -1, # draw matches in green color
-                               singlePointColor = (255,0,0),
-            #                     matchesMask = matchesMask, # draw only inliers
-                               flags = 2)
-            img3 = cv2.drawMatches(self.img,self.kp,img,kp,good, None, **draw_params)
-            cv2.imshow('gg', img3)
-            cv2.waitKey(-1)
+#             draw_params = dict(matchColor = -1, # draw matches in green color
+#                                singlePointColor = (255,0,0),
+#             #                     matchesMask = matchesMask, # draw only inliers
+#                                flags = 2)
+#             img3 = cv2.drawMatches(self.img,self.kp,img,kp,good, None, **draw_params)
+#             cv2.imshow('gg', img3)
+#             cv2.waitKey(-1)
             
             lines = {}
             src_pts = np.float32([ self.kp[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
@@ -113,18 +113,15 @@ class StaticTemplate(object):
             rs_img = four_point_transform(img, dst.reshape(-1,2))
             rs_img = cv2.resize(rs_img, (w,h))
             print 'findHomography ', time()-tt
-            
-
-
-
-            cv2.imshow('found', rs_img)
+            print 'mean', np.mean(mask)
+            cv2.imshow('img', rs_img)
             cv2.waitKey(-1)
             for tag, linetempl in self.tpl_lines.iteritems():
                 line = self.extractLine(rs_img, linetempl)
                 lines[tag] = line
-            return lines
+            return np.mean(mask), lines
         else:
-            return None       
+            return 0, None       
     
     
 if __name__ == '__main__':
@@ -135,11 +132,14 @@ if __name__ == '__main__':
         if fn[-3:].upper() not in ['PEG', 'JPG', 'PNG']: continue
         print fn + '-------------------'
         sample = cv2.imread(samplespath + fn)
+#         sample = cv2.GaussianBlur(sample, (5,5), 0)
+#         M= cv2.getRotationMatrix2D((sample.shape[1]/2, sample.shape[0]/2), 135, 1)
+#         sample = cv2.warpAffine(sample, M ,(sample.shape[1], sample.shape[0]))
         lines = cancuoc_tmpl.find(sample)
         if lines is None: continue
-        for tag, line in lines.iteritems():
-            print tag + str(line.img.shape)
-            cv2.imshow('line', line.img)
-            cv2.waitKey(-1)
+#         for tag, line in lines.iteritems():
+#             print tag + str(line.img.shape)
+#             cv2.imshow('line', line.img)
+#             cv2.waitKey(-1)
     
     
