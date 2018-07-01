@@ -114,8 +114,8 @@ class StaticTemplate(object):
             rs_img = cv2.resize(rs_img, (w,h))
             print 'findHomography ', time()-tt
             print 'mean', np.mean(mask)
-            cv2.imshow('img', rs_img)
-            cv2.waitKey(-1)
+#             cv2.imshow('img', rs_img)
+#             cv2.waitKey(-1)
             for tag, linetempl in self.tpl_lines.iteritems():
                 line = self.extractLine(rs_img, linetempl)
                 lines[tag] = line
@@ -135,7 +135,7 @@ if __name__ == '__main__':
 #         sample = cv2.GaussianBlur(sample, (5,5), 0)
 #         M= cv2.getRotationMatrix2D((sample.shape[1]/2, sample.shape[0]/2), 135, 1)
 #         sample = cv2.warpAffine(sample, M ,(sample.shape[1], sample.shape[0]))
-        lines = cancuoc_tmpl.find(sample)
+        prob, lines = cancuoc_tmpl.find(sample)
         if lines is None: continue
 #         for tag, line in lines.iteritems():
 #             print tag + str(line.img.shape)
