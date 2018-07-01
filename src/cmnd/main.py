@@ -37,7 +37,7 @@ class CMNDPredictor:
     cancuoc = CMND('Can Cuoc Cong Dan', template_path + 'cancuoc_tmp.tiff', template_path + 'cancuoc_mask.tiff', template_path + 'cancuoc_tmpname.tiff')
     cancuoc.addLineDesc({'idNumber':(40,70), 'dateOfBirth':(120,145), 'fullName':(70,120), 'Gender':(145,175), 'Dantoc':(145,175), 'NguyenQuan':(175,217)})
     cmnd9 = CMND('CMND cu - 9 so', template_path + 'cmnd9_tmp.tiff', template_path + 'cmnd9_mask.tiff', template_path + 'cmnd9_tmpname.tiff')
-    cmnd9.addLineDesc({'idNumber':(22,61,83,310),'dateOfBirth':(108,143,80,310,0), 'fullName':(58,87,55,310,0), 'Gender':(0,0), 'Dantoc':(150,207), 'NguyenQuan':(150,207)})
+    cmnd9.addLineDesc({'idNumber':(22,61,83,310),'dateOfBirth':(108,143,80,310), 'fullName':(58,87,55,310), 'Gender':(0,0), 'Dantoc':(150,207), 'NguyenQuan':(150,207)})
     gplxmoi = CMND('Giay Phep Lai Xe moi', template_path + 'gplxmoi_tmp.tiff', template_path + 'gplxmoi_mask.tiff', template_path + 'gplxmoi_tmpname.tiff')
     gplxmoi.addLineDesc({'idNumber':(35,53), 'dateOfBirth':(81,94), 'fullName':(58,80), 'Gender':(0,0), 'Dantoc':(103,125), 'NguyenQuan':(0,0)})
     gplxcu = CMND('Giay Phep Lai Xe cu', template_path + 'gplxcu_tmp.tiff', template_path + 'gplxcu_mask.tiff', template_path + 'gplxcu_tmpname.tiff')
@@ -86,8 +86,8 @@ class CMNDPredictor:
         if len(recognized_cards) > 0:
             # Pick the most appropriate card
             _, foundcmnd = min(recognized_cards)
-    #             foundcmnd.printResult(rstext)
-            foundcmnd.extractLinesAndTexts(TensorFlowRecognizer(), out=rstext)
+            foundcmnd.printResult(rstext)
+#             foundcmnd.extractLinesAndTexts(TensorFlowRecognizer(), out=rstext)
         else:
             rstext.write('No ID Card found.')            
                

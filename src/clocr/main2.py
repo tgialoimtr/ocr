@@ -26,7 +26,6 @@ class CMNDPredictor(object):
 
 
 if __name__ == '__main__':
-    sys.argv = ['main.py','/home/loitg/Downloads/cmnd_data/6.jpg','/home/loitg/temp.txt']
     cmnd_path = '/home/loitg/Downloads/cmnd_data/realcapture/'
     p = CMNDPredictor()
     for fn in os.listdir(cmnd_path):

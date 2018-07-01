@@ -226,22 +226,22 @@ class CMND(object):
             pos = l.bounds[0].stop
             left = (l.bounds[1].start < self.template.shape[1]/2)
             # Prediction using Tesseract 4.0
-            if pos > self.linepos1['idNumber'][0] and pos < self.linepos1['idNumber'][1]: #ID, all numbers
+            if 'idNumber' in self.linepos1 and pos > self.linepos1['idNumber'][0] and pos < self.linepos1['idNumber'][1]: #ID, all numbers
                 pred = ocr(binline, config='--oem 0 --psm 7 -c tessedit_char_whitelist=0123456789')
                 readrs['idNumber'] += pred + ' '
-            elif pos > self.linepos1['dateOfBirth'][0] and pos < self.linepos1['dateOfBirth'][1]: # DOB, number, - , /
+            elif 'dateOfBirth' in self.linepos1 and pos > self.linepos1['dateOfBirth'][0] and pos < self.linepos1['dateOfBirth'][1]: # DOB, number, - , /
                 pred = ocr(binline, config='--oem 1 --psm 7 -c tessedit_char_whitelist=0123456789-/')
                 readrs['dateOfBirth'] += pred + ' '
-            elif left and pos > self.linepos1['Gender'][0] and pos < self.linepos1['Gender'][1]:
+            elif 'Gender' in self.linepos1 and left and pos > self.linepos1['Gender'][0] and pos < self.linepos1['Gender'][1]:
                 pred = ocr(binline, config='--oem 1 --psm 7 -l vie')
                 readrs['Gender'] += pred + ' '
-            elif (not left) and pos > self.linepos1['Dantoc'][0] and pos < self.linepos1['Dantoc'][1]:
+            elif 'Dantoc' in self.linepos1 and (not left) and pos > self.linepos1['Dantoc'][0] and pos < self.linepos1['Dantoc'][1]:
                 pred = ocr(binline, config='--oem 1 --psm 7 -l vie')
                 readrs['Dantoc'] += pred + ' '
-            elif pos > self.linepos1['NguyenQuan'][0] and pos < self.linepos1['NguyenQuan'][1]:
+            elif 'NguyenQuan' in self.linepos1 and pos > self.linepos1['NguyenQuan'][0] and pos < self.linepos1['NguyenQuan'][1]:
                 pred = ocr(binline, config='--oem 1 --psm 7 -l vie')
                 readrs['NguyenQuan'] += pred + ' '
-            elif pos > self.linepos1['fullName'][0] and pos < self.linepos1['fullName'][1]:
+            elif 'fullName' in self.linepos1 and pos > self.linepos1['fullName'][0] and pos < self.linepos1['fullName'][1]:
                 pred = ocr(binline, config='--oem 1 --psm 7 -l vie')
                 readrs['fullName'] += pred + ' '
 #             else:
