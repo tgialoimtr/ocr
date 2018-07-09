@@ -10,6 +10,8 @@ import cv2
 from scipy.ndimage import interpolation
 from skimage.filters import threshold_sauvola, gaussian
 from ocrolib import psegutils,morph,sl
+import os
+import shutil
 
 cmnd_path = '/home/loitg/workspace/cmnd/scanned/'
 cmnd_path = '/home/loitg/workspace/receipttest/img/'
@@ -45,6 +47,25 @@ args.noise = 8
 args.mode = 'cu'
 args.template_path = '/home/loitg/Downloads/cmnd_data/template/'
 
+def name2path(destination):
+    mapping = {}
+    first_loop_pass = True
+    for root, _dirs, files in os.walk(destination):
+        if first_loop_pass:
+            first_loop_pass = False
+            continue
+        for filename in files:
+            mapping[filename] = os.path.join(root, filename)
+    return mapping
+
+def flattenCopy(destination, outpath):
+    mapping = name2path(destination)
+    for filename, path in mapping.iteritems():
+        try:
+            shutil.copyfile(path, os.path.join(outpath, filename))
+        except Exception:
+            print 'ERROR ' + filename
+            
 def summarize(a):
     b = a.ravel()
     return a.dtype, a.shape, [amin(b),mean(b),amax(b)], percentile(b, [0,20,40,60,80,100])
