@@ -145,22 +145,6 @@ class LocalServer(object):
                 except Exception:
                     logger.exception('SERVER ERROR')   
 
-import logging, sys
-def createLogger(name):
-    root = logging.getLogger(name)
-    root.setLevel(logging.DEBUG)
-    
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
-    root.addHandler(ch)
-    return root
-
-def runserver(server, states):
-    logger = createLogger('server')
-    server.run(states, logger) 
-
 from multiprocessing import Process, Manager
 if __name__ == '__main__':
     manager = Manager()

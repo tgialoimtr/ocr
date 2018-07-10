@@ -25,7 +25,6 @@ import tensorflow as tf
 from tensorflow.contrib import learn
 print tf.__version__
 import mjsynth
-import model
 from time import time
 FLAGS = tf.app.flags.FLAGS
 
@@ -72,7 +71,7 @@ def _get_input(bucket_size):
     """Set up and return image and width placeholder tensors"""
 
     # Raw image as placeholder to be fed one-by-one by dictionary
-    image = tf.placeholder(tf.uint8, shape=[bucket_size,32, None, 1])
+    image = tf.placeholder(tf.uint8, shape=[bucket_size,32, None, 3])
     width = tf.placeholder(tf.int32,shape=[bucket_size,]) # for ctc_loss
 
     return image,width
@@ -123,58 +122,63 @@ def _get_init_trained():
     init_fn = lambda sess,ckpt_path: saver_reader.restore(sess, ckpt_path)
     return init_fn
 
-def _get_string(labels):
+def _get_string_so(labels):
     """Transform an 1D array of labels into the corresponding character string"""
-    string = ''.join([mjsynth.out_charset[c] for c in labels])
+    string = ''.join([mjsynth.out_charset_so[c] for c in labels])
     return string
 
-def main(argv=None):
-    bs=3
-    with tf.Graph().as_default():
-        with tf.device('/device:CPU:0'):
-            image,width = _get_input(bs) # Placeholder tensors
- 
-            proc_image = _preprocess_image(image)
+def _get_string_chu(labels):
+    """Transform an 1D array of labels into the corresponding character string"""
+    string = ''.join([mjsynth.out_charset_chu[c] for c in labels])
+    return string
 
-        with tf.device('/device:CPU:0'):
-            features,sequence_length = model.convnet_layers( proc_image, width, 
-                                                             mode)
-            logits = model.rnn_layers( features, sequence_length,
-                                       mjsynth.num_classes() )
-        with tf.device('/device:CPU:0'):
-            predictions = _get_output( logits,sequence_length)
-
-            session_config = _get_session_config()
-            restore_model = _get_init_trained()
-        
-            init_op = tf.group( tf.global_variables_initializer(),
-                            tf.local_variables_initializer()) 
-
-        with tf.Session(config=session_config) as sess:
-            
-            sess.run(init_op)
-            restore_model(sess, _get_checkpoint()) # Get latest checkpoint
-            print image, width
-            print predictions            
-            tt = time()
-            sortedlist = sorted(os.listdir(FLAGS.imgsdir), key=lambda x:(len(x),x))
-            for filename in sortedlist:
-                if filename[-3:].upper() != 'JPG': continue
-                line = os.path.join(FLAGS.imgsdir, filename)
-                print line
-                # Eliminate any trailing newline from filename
-                image_data = _get_image(line.rstrip())
-                image_data = np.array([image_data]*bs)
-                w = image_data.shape[2]
-                ws = np.array([w]*bs)
-                
-                
-                # Get prediction for single image (isa SparseTensorValue)
-                p = sess.run(predictions,{ image: image_data, 
-                                                 width: ws} )
-                print p[0].shape
-                print p[0]
-#                 print(str(time()-tt) + ':' + _get_string(output))
+# def main(argv=None):
+#     bs=3
+#     with tf.Graph().as_default():
+#         with tf.device('/device:CPU:0'):
+#             image,width = _get_input(bs) # Placeholder tensors
+#  
+#             proc_image = _preprocess_image(image)
+# 
+#         with tf.device('/device:CPU:0'):
+#             features,sequence_length = model.convnet_layers( proc_image, width, 
+#                                                              mode)
+#             logits = model.rnn_layers( features, sequence_length,
+#                                        mjsynth.num_classes() )
+#         with tf.device('/device:CPU:0'):
+#             predictions = _get_output( logits,sequence_length)
+# 
+#             session_config = _get_session_config()
+#             restore_model = _get_init_trained()
+#         
+#             init_op = tf.group( tf.global_variables_initializer(),
+#                             tf.local_variables_initializer()) 
+# 
+#         with tf.Session(config=session_config) as sess:
+#             
+#             sess.run(init_op)
+#             restore_model(sess, _get_checkpoint()) # Get latest checkpoint
+#             print image, width
+#             print predictions            
+#             tt = time()
+#             sortedlist = sorted(os.listdir(FLAGS.imgsdir), key=lambda x:(len(x),x))
+#             for filename in sortedlist:
+#                 if filename[-3:].upper() != 'JPG': continue
+#                 line = os.path.join(FLAGS.imgsdir, filename)
+#                 print line
+#                 # Eliminate any trailing newline from filename
+#                 image_data = _get_image(line.rstrip())
+#                 image_data = np.array([image_data]*bs)
+#                 w = image_data.shape[2]
+#                 ws = np.array([w]*bs)
+#                 
+#                 
+#                 # Get prediction for single image (isa SparseTensorValue)
+#                 p = sess.run(predictions,{ image: image_data, 
+#                                                  width: ws} )
+#                 print p[0].shape
+#                 print p[0]
+# #                 print(str(time()-tt) + ':' + _get_string(output))
 
 if __name__ == '__main__':
     tf.app.run()

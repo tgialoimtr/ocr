@@ -7,7 +7,7 @@ Created on Feb 19, 2018
 from time import time
 from Queue import Empty, Full
 from common import args
-    
+
 class BatchLinePredictor(object):
     def __init__(self, server, logger):
         self.putq = server.queue_get

@@ -21,10 +21,15 @@ import tensorflow as tf
 # If any example contains a character not found here, an error will result
 # from the calls to .index in the decoder below
 out_charset="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 `~!@#$%^&*()-=_+[]{};'\\:\"|,./<>?"
+out_charset_so ="0123456789-"
+out_charset_chu ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789,.-' "
 
 def num_classes():
     return len(out_charset)
-
+def num_classes_so():
+    return len(out_charset_so)
+def num_classes_chu():
+    return len(out_charset_chu)
 def bucketed_input_pipeline(base_dir,file_patterns,
                             num_threads=4,
                             batch_size=32,

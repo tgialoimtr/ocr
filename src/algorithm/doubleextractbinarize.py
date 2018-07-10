@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from utils.common import args, sharpen, sauvola, firstAnalyse
 from utils.removedot import removedot
+from scipy.ndimage.filters import gaussian_filter
 
 def pca2(x):
     X_std = x.astype(np.float64)
@@ -83,7 +84,6 @@ def abc(imgpath):
     u = stddirection(V[:,0])
     rs = np.dot(img_col , u)
     rs = cv2.normalize(rs, None, 0.0, 0.99, cv2.NORM_MINMAX)
-    cv2.imshow('bin1', rs)
     print 'bin1', np.var(rs), u
 # 
 #     u = stddirection(V[:,-1])
@@ -100,15 +100,28 @@ def abc(imgpath):
 
     img_grey = rs
     img_grey = sharpen(img_grey)
- 
-    img_bin_reversed = sauvola(img_grey, w=img_grey.shape[0]/2, k=0.05, reverse=True)
-#         ASHOW('ori', img_bin_reversed)
-    objects, smalldot, scale = firstAnalyse(img_bin_reversed)
-    dotremoved = removedot(img_bin_reversed, smalldot, scale)
-     
-    cv2.imshow('bin', img_bin_reversed*255)
+    scale = img_grey.shape[0]/2
+    grad_grey = gaussian_filter(img_grey,(max(4,args.vscale*0.3*scale),
+                                    args.hscale*1.0*scale),order=(1,0))
+    grad_grey = cv2.normalize(abs(grad_grey), None, 0.0, 0.99, cv2.NORM_MINMAX)
+    img_bin = sauvola(img_grey, w=img_grey.shape[0]/4, k=0.2, reverse=True)
+    img_bin_reversed = img_bin.copy()
+    
+    def lambda_extract(o, arg_scale):
+        h = o[0].stop - o[0].start
+        w = o[1].stop - o[1].start
+        return h < scale/2 and w < scale/2
+    objects, extracts, scale = firstAnalyse(img_bin_reversed, [lambda_extract])
+    dotremoved = cv2.subtract(img_bin_reversed, extracts[0])
+    
+    grad_dot_bin = gaussian_filter(dotremoved,(max(4,args.vscale*0.3*scale),
+                                args.hscale*1.0*scale),order=(1,0))
+    grad_dot_bin = cv2.normalize(abs(grad_dot_bin), None, 0.0, 0.99, cv2.NORM_MINMAX)
+    cv2.imshow('bin', img_bin*240)
+    cv2.imshow('gradgrey', grad_grey*240)
     print len(objects)
-    cv2.imshow('dot', dotremoved*255)
+    cv2.imshow('dot', dotremoved*240)
+    cv2.imshow('graddot', grad_dot_bin*240)
     cv2.waitKey(-1)
     
 if __name__ == '__main__':

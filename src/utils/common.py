@@ -12,6 +12,9 @@ from skimage.filters import threshold_sauvola, gaussian
 from ocrolib import psegutils,morph,sl
 import os
 import shutil
+import logging
+from logging.handlers import TimedRotatingFileHandler
+
 
 cmnd_path = '/home/loitg/workspace/cmnd/scanned/'
 cmnd_path = '/home/loitg/workspace/receipttest/img/'
@@ -44,8 +47,29 @@ args.expand = 3
 args.model = '/home/loitg/workspace/receipttest/model/receipt-model-460-700-00590000.pyrnn.gz'
 args.connect = 4
 args.noise = 8
+args.stdwidth=32*20
+args.device = '/device:CPU:0'
 args.mode = 'cu'
 args.template_path = '/home/loitg/Downloads/cmnd_data/template/'
+args.model_path = '/home/loitg/workspace/poc_aia_resources/model_id-so/'
+args.model_path_chu = '/home/loitg/workspace/poc_aia_resources/model_chu3/'
+
+
+def createLogger(name, logdir=None, stdout=True):
+    logFormatter = logging.Formatter("%(asctime)s [%(name)-12.12s] [%(levelname)-5.5s]  %(message)s")
+    rootLogger = logging.getLogger(name)
+    
+    if logdir is not None:
+        fileHandler = TimedRotatingFileHandler(os.path.join(logdir, 'log.' + name) , when='midnight', backupCount=10)
+        fileHandler.setFormatter(logFormatter)
+        rootLogger.addHandler(fileHandler)
+    if stdout:
+        consoleHandler = logging.StreamHandler()
+        consoleHandler.setFormatter(logFormatter)
+        rootLogger.addHandler(consoleHandler)
+        
+    rootLogger.setLevel(logging.DEBUG)
+    return rootLogger
 
 def name2path(destination):
     mapping = {}
@@ -160,14 +184,12 @@ def simplefirstAnalyse(binary):
             continue
     return objects, smalldot, scale
 
-def firstAnalyse(binary):
+def firstAnalyse(binary, fs):
     binaryary = morph.r_closing(binary.astype(bool), (1,1))
     labels,_ = morph.label(binaryary)
     objects = morph.find_objects(labels) ### <<<==== objects here
     bysize = sorted(range(len(objects)), key=lambda k: sl.area(objects[k]))
-#     bysize = sorted(objects,key=sl.area)
     scalemap = zeros(binaryary.shape)
-    smalldot = zeros(binaryary.shape, dtype=binary.dtype)
     for i in bysize:
         o = objects[i]
         if amax(scalemap[o])>0: 
@@ -177,12 +199,10 @@ def firstAnalyse(binary):
         scalemap[o] = sl.area(o)**0.5
     scale = median(scalemap[(scalemap>3)&(scalemap<100)]) ### <<<==== scale here
 
-    for i,o in enumerate(objects):       
-        if (sl.width(o) < scale/2) or (sl.height(o) < scale/2):
-            smalldot[o] = binary[o]
-        if sl.dim0(o) > 3*scale:
-            mask = where(labels[o] != (i+1),uint8(255),uint8(0))
-            binary[o] = cv2.bitwise_and(binary[o],binary[o],mask=mask)
-            continue
-    return objects, smalldot, scale
-        
+    extracts = [zeros(binaryary.shape, dtype=binary.dtype) for _ in fs]
+    for i,o in enumerate(objects):
+        for j,f in enumerate(fs):
+            if f(o, scale):
+                mask = where(labels[o] == (i+1),uint8(255),uint8(0))
+                extracts[j][o] = cv2.bitwise_and(binary[o],binary[o],mask=mask)
+    return objects, extracts, scale

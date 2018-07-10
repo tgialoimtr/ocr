@@ -11,9 +11,10 @@ from Queue import Empty, Full
 import numpy as np
 import tensorflow as tf
 
-from weinman import model, mjsynth, validate
-from common import args
-        
+from extras.weinman import model_chu as model
+from extras.weinman import mjsynth, validate
+from utils.common import args
+
 class Bucket(object):
     def __init__(self, maxtime, batchsize, widthrange):
         self.maxtime = maxtime
@@ -28,10 +29,10 @@ class Bucket(object):
     def addImgToBucket(self, clientid, imgid, imgtime, img):
         if img.shape[1] > self.widthrange[0] and img.shape[1] <= self.widthrange[1]:
             newimg = cv2.copyMakeBorder(img, top=0, bottom=0, left=0, right=self.widthrange[1]-img.shape[1], borderType=cv2.BORDER_CONSTANT, value=0)
-            if len(newimg.shape) < 3:
-                newimg = newimg[:,:,np.newaxis]
-            else:
-                newimg = newimg[:,:,1]
+#             if len(newimg.shape) < 3:
+#                 newimg = newimg[:,:,np.newaxis]
+#             else:
+#                 newimg = newimg[:,:,1]
             self.imgs.append(newimg)
             self.widths.append(img.shape[1])
             self.infos.append((clientid, imgid))
@@ -90,16 +91,13 @@ class LocalServer(object):
                 features,sequence_length = model.convnet_layers( proc_image, width, 
                                                                  validate.mode)
                 logits = model.rnn_layers( features, sequence_length,
-                                           mjsynth.num_classes() )
+                                           mjsynth.num_classes_chu() )
                 predictions = validate._get_output( logits,sequence_length)
-    
             session_config = validate._get_session_config()
             restore_model = validate._get_init_trained()
-        
             init_op = tf.group( tf.global_variables_initializer(),
                             tf.local_variables_initializer()) 
             with tf.Session(config=session_config) as sess:
-            
                 sess.run(init_op)
                 restore_model(sess, validate._get_checkpoint(self.modeldir)) # Get latest checkpoint
                 logger.info('server started, waiting image ...')
@@ -122,10 +120,10 @@ class LocalServer(object):
                         for img in imglist:
                             if img.shape[1] > args.stdwidth: continue
                             newimg = cv2.copyMakeBorder(img, top=0, bottom=0, left=0, right=args.stdwidth-img.shape[1], borderType=cv2.BORDER_CONSTANT, value=0)
-                            if len(newimg.shape) < 3:
-                                newimg = newimg[:,:,np.newaxis]
-                            else:
-                                newimg = newimg[:,:,1]
+#                             if len(newimg.shape) < 3:
+#                                 newimg = newimg[:,:,np.newaxis]
+#                             else:
+#                                 newimg = newimg[:,:,1]
                             forimg.append(newimg)
                             forwidth.append(img.shape[1])
                         
@@ -136,7 +134,7 @@ class LocalServer(object):
                         for j in range(p[0].shape[0]):
                             txt = p[0][j,:]
                             txt = [i for i in txt if i >= 0]
-                            txt = validate._get_string(txt) 
+                            txt = validate._get_string_chu(txt) 
                             fortxt.append(txt)
                         try:
                             self.queue_push.put((batchid, fortxt), block=False)
@@ -144,29 +142,6 @@ class LocalServer(object):
                             logger.warning('queue get full')
                 except Exception:
                     logger.exception('SERVER ERROR')   
-
-import logging, sys
-def createLogger(name):
-    root = logging.getLogger(name)
-    root.setLevel(logging.DEBUG)
     
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
-    root.addHandler(ch)
-    return root
-
-def runserver(server, states):
-    logger = createLogger('server')
-    server.run(states, logger) 
-
-from multiprocessing import Process, Manager
 if __name__ == '__main__':
-    manager = Manager()
-    states = manager.dict()
-    server = LocalServer(args.model_path, manager)
-    p = Process(target=runserver, args=(server, states))
-    p.daemon = True
-    p.start()
-    print 'started: ' + str(p.pid)
+    pass

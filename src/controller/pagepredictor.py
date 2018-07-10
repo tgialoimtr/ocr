@@ -15,7 +15,7 @@ import time
 import datetime
 
 import threading
-from linepredictor import BatchLinePredictor
+from extras.weinman.interface.linepredictor import BatchLinePredictor
 import common
        
 class obj:
