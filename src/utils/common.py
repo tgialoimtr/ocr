@@ -47,13 +47,18 @@ args.expand = 3
 args.model = '/home/loitg/workspace/receipttest/model/receipt-model-460-700-00590000.pyrnn.gz'
 args.connect = 4
 args.noise = 8
+
 args.stdwidth=32*20
 args.device = '/device:CPU:0'
 args.mode = 'cu'
 args.template_path = '/home/loitg/Downloads/cmnd_data/template/'
-args.model_path = '/home/loitg/workspace/poc_aia_resources/model_id-so/'
-args.model_path_chu = '/home/loitg/workspace/poc_aia_resources/model_chu3/'
-
+args.model_path_so = '/home/loitg/Downloads/poc_aia_resources/model_id-so/'
+args.model_path_chu = '/home/loitg/Downloads/poc_aia_resources/model_chu3/'
+args.download_dir = '/tmp/temp/'
+args.logsdir = '/tmp/logs/' # store logs files
+args.qget_wait_count = 400000
+args.qget_wait_interval = 0.3
+args.batch_size = 4
 
 def createLogger(name, logdir=None, stdout=True):
     logFormatter = logging.Formatter("%(asctime)s [%(name)-12.12s] [%(levelname)-5.5s]  %(message)s")

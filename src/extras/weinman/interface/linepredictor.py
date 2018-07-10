@@ -3,10 +3,8 @@ Created on Feb 19, 2018
 
 @author: loitg
 '''
-# This is a placeholder for a Google-internal import.
-from time import time
 from Queue import Empty, Full
-from common import args
+from utils.common import args
 
 class BatchLinePredictor(object):
     def __init__(self, server, logger):

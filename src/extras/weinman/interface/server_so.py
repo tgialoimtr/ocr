@@ -11,8 +11,8 @@ from Queue import Empty, Full
 import numpy as np
 import tensorflow as tf
 
-from weinman import model_so as model
-from weinman import mjsynth, validate
+from extras.weinman import model_so as model
+from extras.weinman import mjsynth, validate
 from common import args
 
 class Bucket(object):

@@ -19,7 +19,7 @@ args.javapath = '/home/loitg/location_nn/java'
 args.logsdir = '/home/loitg/location_nn/logs/'
 args.dbfile = 'top200_v3.csv'
 args.locationnjar = 'location_nn.jar'
-args.download_dir = '/home/loitg/location_nn/downloads'
+args.download_dir = '/tmp/temp/'
 args.connection_string = 'DefaultEndpointsProtocol=http;AccountName=storacctcapitastartable;AccountKey=Z/dhpkNhR7DY0goHVsaPldFCnqzydIN/CunYh324E8M82eqOGeupYFS5CGz7CS18FDm1wWmWPEX3ecxJ23HqmA=='
 args.queue_get_name = 'ocr-receipt-queue-hangtest'
 args.queue_push_name = 'receipt-info-queue-hangtest'
@@ -28,7 +28,7 @@ args.receipt_waiting_interval = 10
 args.heartbeat_check = 300
 args.mode = 'process'
 ##########################
-args = DFO()
+
 args.model_path = '/home/loitg/workspace/poc_aia_resources/model_id-so/'
 args.model_path_chu = '/home/loitg/workspace/poc_aia_resources/model_chu3/'
 args.imgsdir = '/home/loitg/ctoaia/case1_line/hard_imgs/' # test image for validate.py

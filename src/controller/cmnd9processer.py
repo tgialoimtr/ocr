@@ -3,15 +3,16 @@ Created on Jul 10, 2018
 
 @author: loitg
 '''
+import os
 import cv2
-import time
-import multiprocessing
-from multiprocessing import Process, Manager, Pool
+import datetime
+from multiprocessing import Process, Manager
 
-from extras.weinman.interface import server_chu as LocalServer_chu
-from extras.weinman.interface import server_so as LocalServer_so
-from extras.weinman.interface import linepredictor
+from extras.weinman.interface.server_chu import LocalServer as LocalServer_chu
+from extras.weinman.interface.server_so import LocalServer as LocalServer_so
+from extras.weinman.interface.linepredictor import BatchLinePredictor
 from utils.common import createLogger, args
+from cmnd.template import StaticTemplate
 
 def runserver(server, states):
     logger = createLogger('server')
@@ -20,53 +21,73 @@ def runserver(server, states):
 class Cmnd9Processer(object):
 
 
-    def __init__(self, bzid):
+    def __init__(self, bzid, logger=None):
+        if logger is None: logger = createLogger('bzid')
+        self.logger = logger
         self.cancuoc_tmpl = StaticTemplate.createFrom('/home/loitg/Downloads/cmnd_data/template/1cmnd9.xml')
     
     
     def init(self):
-        logger = createLogger('reader')
         manager = Manager()
         states = manager.dict()
-        server0 = LocalServer_so(args.model_path, manager)
-        print str(server0.queue_get)
-        server1 = LocalServer_chu(args.model_path_chu, manager)
-        print str(server1.queue_get)
-        p = Process(target=runserver, args=(server0, states))
-        p_chu = Process(target=runserver, args=(server1, states))
-        p.daemon = True
+        self.server_so = LocalServer_so(args.model_path_so, manager)
+        print str(self.server_so.queue_get)
+        self.server_chu = LocalServer_chu(args.model_path_chu, manager)
+        print str(self.server_chu.queue_get)
+        p_so = Process(target=runserver, args=(self.server_so, states))
+        p_chu = Process(target=runserver, args=(self.server_chu, states))
+        p_so.daemon = True
         p_chu.daemon = True
-        p.start()
+        p_so.start()
         p_chu.start()
-        return 'started: ' + str(p.pid) + ' and ' + str(p_chu.pid)
+        return 'started: ' + str(p_so.pid) + ' and ' + str(p_chu.pid)
     
     ### This is NOT multi-thread safe
     def process1(self, filepath):
         img = cv2.imread(filepath)
         prob, lines = self.cancuoc_tmpl.find(img)
+        rs = {}
         if prob > 0.5:
             print prob
+            reader_chu = BatchLinePredictor(self.server_chu, self.logger)
+            list_chu = []
+            reader_so = BatchLinePredictor(self.server_so, self.logger)
+            list_so = []
             for k, imgline in lines.iteritems():
-                print k
-                cv2.imshow('line', imgline.img)
-                cv2.waitKey(-1)
-
-        line = cv2.cvtColor(line, cv2.COLOR_BGR2RGB)
-        linereader = BatchLinePredictor(server, logger)
-    
-        newwidth = int(32.0/line.shape[0] * line.shape[1])
-        if newwidth < 32 or newwidth > common.args.stdwidth: return 'Line too short or long'
-        line = cv2.resize(line, (newwidth, 32))
-        for i in range(args.batch_size):
-            line_list.append(line)
-            
-        batchname = datetime.datetime.now().isoformat()
-        pred_dict = linereader.predict_batch(batchname, line_list, logger)
-        rs = pred_dict[0] if len(pred_dict[0].strip()) > 0 else '<blank line>'
+                if k in ['whole', 'thuongtru1', 'thuongtru2']: continue
+                line = cv2.cvtColor(imgline.img, cv2.COLOR_BGR2RGB)
+                newwidth = int(32.0/line.shape[0] * line.shape[1])
+                if newwidth < 32 or newwidth > args.stdwidth: return 'Line too short or long'
+                line = cv2.resize(line, (newwidth, 32))
+                if k in ['id', 'ntns']:
+                    list_so.append(line)
+                elif k in ['hoten1', 'hoten2', 'quequan1', 'quequan2']:
+                    list_chu.append(line)
+            list_so.append(list_so[0]*0.85)
+            list_so.append(list_so[1]*0.85)
+            batchname = datetime.datetime.now().isoformat()
+            pred_dict_chu = reader_chu.predict_batch(batchname, list_chu, self.logger)
+            pred_dict_so = reader_so.predict_batch(batchname, list_so, self.logger)
+            rs['id'] = pred_dict_so[0]
+            rs['ntns'] = pred_dict_so[1]
+            rs['hoten'] = pred_dict_chu[0].strip() + pred_dict_chu[1].strip()
+            rs['quequan'] = pred_dict_chu[2].strip() + pred_dict_chu[3].strip()
         return rs 
 
 
 
     ### This is multi-thread safe
     def read(self, filepath):
-        img = cv2.imread(filepath)     
+        return self.process1(filepath)
+    
+    
+if __name__ == '__main__':
+    p = Cmnd9Processer('cmnd9')
+    p.init()
+    pathp = '/home/loitg/workspace/clocr/temp/1/'
+    for fn in os.listdir(pathp):
+        a = p.read(pathp + fn)
+        print a
+
+
+ 

@@ -3,11 +3,13 @@ Created on Mar 28, 2018
 
 @author: loitg
 '''
+import json
+import os
 from flask import Flask, request, redirect, url_for
 from werkzeug.utils import secure_filename
 from utils.common import createLogger
 from controller.cmnd9processer import Cmnd9Processer
-from common import args
+from utils.common import args
 
 app = Flask(__name__)
 mtreader = None
@@ -26,8 +28,10 @@ def upload_file():
     processer_cls = Cmnd9Processer
     ### start function
     if mtreader is None:
+        print 'fsfsd init'
         logger = createLogger(bzid, args.logsdir)
         mtreader = processer_cls(bzid, logger)
+        mtreader.init()
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -45,7 +49,7 @@ def upload_file():
             file0.save(imgpath)
             outmsg = mtreader.read(imgpath)
 #             os.remove(imgpath)
-            return outmsg
+            return json.dumps(outmsg)
     return '''
     <!doctype html>
     <title>Upload new File</title>
