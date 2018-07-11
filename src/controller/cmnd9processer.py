@@ -50,21 +50,29 @@ class Cmnd9Processer(object):
         if prob > 0.5:
             print prob
             reader_chu = BatchLinePredictor(self.server_chu, self.logger)
-            list_chu = []
+            list_chu = None*4
             reader_so = BatchLinePredictor(self.server_so, self.logger)
-            list_so = []
+            list_so = None*4
             for k, imgline in lines.iteritems():
                 if k in ['whole', 'thuongtru1', 'thuongtru2']: continue
                 line = cv2.cvtColor(imgline.img, cv2.COLOR_BGR2RGB)
                 newwidth = int(32.0/line.shape[0] * line.shape[1])
                 if newwidth < 32 or newwidth > args.stdwidth: return 'Line too short or long'
                 line = cv2.resize(line, (newwidth, 32))
-                if k in ['id', 'ntns']:
-                    list_so.append(line)
-                elif k in ['hoten1', 'hoten2', 'quequan1', 'quequan2']:
-                    list_chu.append(line)
-            list_so.append(list_so[0]*0.85)
-            list_so.append(list_so[1]*0.85)
+                if k == 'id':
+                    list_so[0] = line
+                    list_so[2] = line*0.85
+                if k == 'ntns':
+                    list_so[1] = line
+                    list_so[3] = line*0.85
+                elif k == 'hoten1':
+                    list_chu[0] = line
+                elif k == 'hoten2':
+                    list_chu[1] = line                    
+                elif k == 'quequan1':
+                    list_chu[2] = line
+                elif k == 'quequan2':
+                    list_chu[3] = line
             batchname = datetime.datetime.now().isoformat()
             pred_dict_chu = reader_chu.predict_batch(batchname, list_chu, self.logger)
             pred_dict_so = reader_so.predict_batch(batchname, list_so, self.logger)

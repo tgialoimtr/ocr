@@ -13,6 +13,7 @@ from utils.common import args
 
 app = Flask(__name__)
 mtreader = None
+logger = None
 
 import datetime, random
 def makeNameUnique(rawName):
@@ -28,20 +29,19 @@ def upload_file():
     processer_cls = Cmnd9Processer
     ### start function
     if mtreader is None:
-        print 'fsfsd init'
         logger = createLogger(bzid, args.logsdir)
         mtreader = processer_cls(bzid, logger)
         mtreader.init()
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
-            flash('No file part')
+            logger.info('No file part')
             return redirect(request.url)
         file0 = request.files['file']
         # if user does not select file, browser also
         # submit a empty part without filename
         if file0.filename == '':
-            flash('No selected file')
+            logger.info('No selected file')
             return redirect(request.url)
         if file0:
             filename = makeNameUnique(secure_filename(file0.filename))
