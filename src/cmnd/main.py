@@ -4,7 +4,7 @@ Created on Oct 31, 2017
 @author: loitg
 '''
 import os, sys
-from recognizer.TensorFlowRecognizer import TensorFlowRecognizer
+from algorithm import TensorFlowRecognizer.TensorFlowRecognizer
 # Config PYTHONPATH and template folder relatively according to current file location
 project_dir = os.path.dirname(__file__) + '/../'
 template_path = project_dir + '/template/'

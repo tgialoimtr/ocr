@@ -21,7 +21,7 @@ from ocrolib.toplevel import *
 
 from utils.common import DSHOW
 from lineextract.line import Line
-from recognizer.TensorFlowRecognizer import TensorFlowRecognizer
+from algorithm import TensorFlowRecognizer.TensorFlowRecognizer
 
 
 def pre_check_line(line):

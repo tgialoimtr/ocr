@@ -10,7 +10,7 @@ import cv2,os,sys
 from utils.common import sauvola, sharpen, simplefirstAnalyse, ASHOW, summarize
 from utils.removedot import removedot
 from lineextract.ocropus.line_extractor import compute_gradmaps, spread_labels, compute_line_seeds
-from recognizer import lineest
+from algorithm import lineest
 from ocrolib import psegutils,morph
 import ocrolib
 from numpy import where, linspace, uint8, ones, array
