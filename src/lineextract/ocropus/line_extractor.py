@@ -21,7 +21,6 @@ from ocrolib.toplevel import *
 
 from utils.common import DSHOW
 from lineextract.line import Line
-from algorithm import TensorFlowRecognizer.TensorFlowRecognizer
 
 
 def pre_check_line(line):
@@ -148,7 +147,7 @@ class LinesExtractor(object):
         imglines = self._calc(objects, scale)  
         #########
          
-        imgtexts = self.extractTexts(imglines, TensorFlowRecognizer())  
+        
         
     
     

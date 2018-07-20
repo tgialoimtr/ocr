@@ -60,6 +60,18 @@ args.qget_wait_count = 400000
 args.qget_wait_interval = 0.3
 args.batch_size = 4
 
+def pca2(x):
+    X_std = x.astype(np.float64)
+    cov_mat = np.cov(X_std.T)
+    eig_vals, eig_vecs = np.linalg.eig(cov_mat)
+    return eig_vecs, eig_vals
+
+def gray2heatmap(img):
+    cmap = plt.get_cmap('jet')
+    rgba_img = cmap(img)
+    rgb_img = np.delete(rgba_img, 3, 2)
+    return rgb_img
+
 def createLogger(name, logdir=None, stdout=True):
     logFormatter = logging.Formatter("%(asctime)s [%(name)-12.12s] [%(levelname)-5.5s]  %(message)s")
     rootLogger = logging.getLogger(name)
@@ -140,23 +152,25 @@ def sharpen(binimg):
     alpha = 30
     return blurred_l + alpha * (blurred_l - filter_blurred_l) 
     
-def estimate_skew_angle(image,angles):
-    estimates = []
-    binimage = sauvola(image, 11, 0.1).astype(float)
-#     cv2.imshow('debug',binimage)
-#     cv2.waitKey(-1)
+def estimate_skew_angle(image,angles, binarize=True):
+    if binarize:
+        binimage = sauvola(image, 11, 0.1).astype(float)
+    else:
+        binimage = image
+    var_max = -np.inf
+    angle_max = 0
+    rotated_img = None
     for a in angles:
         rotM = cv2.getRotationMatrix2D((binimage.shape[1]/2,binimage.shape[0]/2),a,1)
         rotated = cv2.warpAffine(binimage,rotM,(binimage.shape[1],binimage.shape[0]))
         v = mean(rotated,axis=1)
         d = [abs(v[i] - v[i-1]) for i in range(1,len(v))]
         d = var(d)
-        estimates.append((d,a))
-#     if args.debug>0:
-#         plot([y for x,y in estimates],[x for x,y in estimates])
-#         ginput(1,args.debug)
-    _,a = max(estimates)
-    return a
+        if d > var_max:
+            var_max = d
+            rotated_img = rotated
+            angle_max = a
+    return angle_max, rotated_img
 
 def sauvola(grayimg, w=51, k=0.2, scaledown=None, reverse=False):
     mask =None
