@@ -55,10 +55,8 @@ class StaticTemplate(object):
     
     
     @staticmethod
-    def createFrom(VOCxmlpath, keypoint_type=KeyPointCalc.ORB):
-        fname, vocrs =vocXml2Dict(VOCxmlpath)
-        print fname
-        print vocrs
+    def createFrom(VOCxmlpath, fname, keypoint_type=KeyPointCalc.ORB):
+        _, vocrs =vocXml2Dict(VOCxmlpath)
         tpl_lines = {}
         if 'whole' not in vocrs: return None
         abs_x0, abs_y0, abs_x1, abs_y1 = vocrs['whole']
