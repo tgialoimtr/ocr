@@ -51,16 +51,18 @@ class StaticTemplate(object):
         self.tpl_lines = {}
         self.keypointCalc = None
         self.img = None
+        self.desc = None
         
     
     
     @staticmethod
-    def createFrom(VOCxmlpath, fname, keypoint_type=KeyPointCalc.ORB):
+    def createFrom(VOCxmlpath, fname, desc='Template', keypoint_type=KeyPointCalc.ORB):
         _, vocrs =vocXml2Dict(VOCxmlpath)
         tpl_lines = {}
         if 'whole' not in vocrs: return None
         abs_x0, abs_y0, abs_x1, abs_y1 = vocrs['whole']
         template = StaticTemplate()
+        template.desc = desc
         template.keypointCalc = KeyPointCalc(keypoint_type)
         for tag, pos in vocrs.iteritems():
             xmin, ymin, xmax, ymax = pos

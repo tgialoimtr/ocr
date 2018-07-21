@@ -10,6 +10,18 @@ from utils.common import args, sharpen, sauvola, firstAnalyse, estimate_skew_ang
 from lineextract.ocropus.line_extractor import compute_line_seeds
 from utils.common import gray2heatmap, pca2
 from scipy.ndimage.filters import gaussian_filter
+from scipy.ndimage.filters import maximum_filter, minimum_filter
+
+def removedot(imgbin, smalldot, scale):   
+#     ellipsis_map = zeros(imgbin.shape,dtype=uint8)
+    horizental = maximum_filter(smalldot, (1,scale))
+    horizental = minimum_filter(horizental, (1,scale))
+    horizental = minimum_filter(horizental, (1,scale*3))
+    horizental = maximum_filter(horizental, (1,scale*3))       
+    linemap = horizental
+    linemap = maximum_filter(linemap, (3,3))  
+    ellipsis_map = cv2.bitwise_and(smalldot, smalldot, mask=linemap)
+    return cv2.subtract(imgbin, ellipsis_map)
 
 def binarize(img, black0, white0):
     img = img.astype(float)
@@ -32,7 +44,7 @@ def stddirection(a):
     else:
         return a
     
-def pipolarRotateExtractLine(img_col):
+def pipolarRotateExtractLine(img_col, expand):
     img_col = img_col.astype(np.float32)/255.0
     cv2.imshow('col', img_col)
     
@@ -74,7 +86,7 @@ def pipolarRotateExtractLine(img_col):
     _,y0, y1 = extractLine(dotremoved, bottom, top)[0]
     rotM = cv2.getRotationMatrix2D((dotremoved.shape[1]/2,dotremoved.shape[0]/2),a,1)
     rotated_grey = cv2.warpAffine(img_grey,rotM,(dotremoved.shape[1],dotremoved.shape[0]))
-    y0, y1 = expands(0, rotated_grey.shape[0], y0, y1, 0.5)
+    y0, y1 = expands(0, rotated_grey.shape[0], y0, y1, expand)
     line = rotated_grey[y0:y1, :]
     return line
 
