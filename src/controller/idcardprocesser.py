@@ -7,23 +7,31 @@ Created on Jul 10, 2018
 import os
 import cv2
 import json
-from extras.weinman.interface.linepredictor import BatchLinePredictor
-from utils.common import createLogger, args
+from utils.common import createLogger
 from cmnd.template import StaticTemplate
 from algorithm.looptess import loop_ocr, UnicodeUtil
 from algorithm.doubleextractbinarize import pipolarRotateExtractLine
 import editdistance
 import re, enchant
+from utils.common import TEMPORARY_PATH
 
 class Validate(object):
     
     def __init__(self):
         self.vdict = enchant.Dict('vi')
         self.date_p = re.compile('([012]?[\d/]|3[01])[-/\. ]?([012]?[\d/]|3[01])[-/\. ]?[ ]?((200|19[5-9/])[\d/])')
-        self.accent_dict = UnicodeUtil('/home/loitg/workspace/genline/resource/diacritics2.csv')
+        self.year_p = re.compile('(200|19[5-9/])[\d/]')
+        self.accent_dict = UnicodeUtil(os.path.join(TEMPORARY_PATH, 'diacritics2.csv'))
     
     def _correctWord(self, word):
         if word == u'TP': return word
+        if len(word) < 2:
+            print u'ignore ' + word
+            return u''
+        charinfo = self.accent_dict.at(word[0])
+        if len(word) < 4 and charinfo is not None and charinfo.base.islower():
+            print u'ignore ' + word
+            return u''
         wordTI = word.replace(u'T',u'I')
         if self.vdict.check(word):
             return word
@@ -63,7 +71,11 @@ class Validate(object):
         if m is not None:
             return 1.0, m.group(1) + '-' + m.group(2) + '-' + m.group(3)
         else:
-            return 0.0, None
+            m = self.year_p.match(txt)
+            if m is not None:
+                return 1.0, m.group(0)
+            else:
+                return 0.0, None
         
     def correctGender(self, txt):
         pass
@@ -93,20 +105,20 @@ def validateLine(line):
     else:
         return cv2.resize(line, (int(newwidth), 50))
     
-class Cmnd9Processer(object):
+class IdCardProcesser(object):
 
 
     def __init__(self, bzid, logger=None):
         if logger is None: logger = createLogger('bzid')
         self.logger = logger
-        self.cmnd9_tmpl = StaticTemplate.createFrom('/home/loitg/workspace/clocr/temp/bzcmnd9/template/1cmnd9.xml',
-                                                    '/home/loitg/workspace/clocr/temp/bzcmnd9/template/1cmnd9.jpg',
+        self.cmnd9_tmpl = StaticTemplate.createFrom(os.path.join(TEMPORARY_PATH,'bzcmnd9/template/1cmnd9.xml'),
+                                                    os.path.join(TEMPORARY_PATH,'bzcmnd9/template/1cmnd9.jpg'),
                                                     'CMND Cu - 9 So')
-        self.cancuoc_tmpl = StaticTemplate.createFrom('/home/loitg/workspace/clocr/temp/bzcmnd9/template/0cancuoc.xml',
-                                                    '/home/loitg/workspace/clocr/temp/bzcmnd9/template/0cancuoc.jpg',
+        self.cancuoc_tmpl = StaticTemplate.createFrom(os.path.join(TEMPORARY_PATH,'bzcmnd9/template/0cancuoc.xml'),
+                                                    os.path.join(TEMPORARY_PATH,'bzcmnd9/template/0cancuoc.jpg'),
                                                     'Can Cuoc Cong Dan')
-        self.cmnd12_tmpl = StaticTemplate.createFrom('/home/loitg/workspace/clocr/temp/bzcmnd9/template/cmnd12.xml',
-                                                    '/home/loitg/workspace/clocr/temp/bzcmnd9/template/cmnd12.jpg',
+        self.cmnd12_tmpl = StaticTemplate.createFrom(os.path.join(TEMPORARY_PATH,'bzcmnd9/template/cmnd12.xml'),
+                                                    os.path.join(TEMPORARY_PATH,'bzcmnd9/template/cmnd12.jpg'),
                                                     'CMND Moi - 12 So')
         self.list_tmpl = [self.cmnd9_tmpl, self.cancuoc_tmpl, self.cmnd12_tmpl]   
     
@@ -116,13 +128,14 @@ class Cmnd9Processer(object):
     
     ### This is NOT multi-thread safe
     def process1(self, filepath):
+        rs = {}
         imgwhole = cv2.imread(filepath)
         probs_lines_tmpl = [(tmpl.find(imgwhole) + (tmpl,)) for tmpl in self.list_tmpl]
         probs_lines_tmpl.sort(reverse=True)
-        if probs_lines_tmpl[0][0] < 0.5:
-            return {}
+        if probs_lines_tmpl[0][0] < 0.3:
+            return u'No ID Card found.' 
         lines = probs_lines_tmpl[0][1]
-        rs = {}
+        
         corrector = Validate()
         rs['type'] = probs_lines_tmpl[0][2].desc
         img = validateLine(pipolarRotateExtractLine(lines['id'].img, 0.5))
@@ -153,11 +166,14 @@ class Cmnd9Processer(object):
 
 
 
-        print probs_lines_tmpl[0][0], probs_lines_tmpl[0][2].desc
-        print rs
-        cv2.imshow('fadsfs', imgwhole)
-        cv2.waitKey(-1)
-        return json.dumps(rs) 
+        print '---', probs_lines_tmpl[0][2].desc
+        total_char = sum([len(x.strip()) for k, x in rs.items() if x is not None and k != 'type'])
+        if total_char > 5:
+            print rs
+            return json.dumps(rs) 
+        else:
+            print u'No ID Card found.' 
+            return u'No ID Card found.' 
 
 
 
@@ -167,9 +183,9 @@ class Cmnd9Processer(object):
     
     
 if __name__ == '__main__':
-    p = Cmnd9Processer('cmnd9')
+    p = IdCardProcesser('cmnd9')
     p.init()
-    pathp = '/home/loitg/workspace/clocr/temp/1/'
+    pathp = TEMPORARY_PATH +'1/'
     for fn in os.listdir(pathp):
         a = p.read(pathp + fn)
 

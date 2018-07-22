@@ -8,10 +8,16 @@ import numpy as np
 from pytesseract import pytesseract
 from scipy.misc import imsave
 import codecs
-from utils.common import sauvola, sharpen, firstAnalyse
+from utils.common import sauvola, sharpen, firstAnalyse, TEMPORARY_PATH
 
 from algorithm.doubleextractbinarize import pipolarRotateExtractLine, removedot
 
+class VNCharInfo(object):
+    def __init__(self, base, accent0, accent1):
+        self.base = base
+        self.accent0 = accent0
+        self.accent1 = accent1
+        
 class UnicodeUtil(object):
     def __init__(self, diacritics_path_csv):
         self.accent_dict = {}
@@ -19,10 +25,16 @@ class UnicodeUtil(object):
             for line in f:
                 temp = line.strip().split(',')
                 accent = temp[1].decode('utf8')                
-                self.accent_dict[accent] = temp[2:]
+                self.accent_dict[accent] = VNCharInfo(temp[2], temp[3], temp[4])
     
     def charList(self):
         return list(self.accent_dict.keys())
+    
+    def at(self, ch):
+        if ch in self.accent_dict:
+            return self.accent_dict[ch]
+        else:
+            return None
     
 def loop_ocr(img, input_type='raw', charset=None, lang='eng', lstm=False, corrector=None):
     ### config string from param
@@ -100,7 +112,7 @@ def pytesseract_ocr(img, config=''):
         pytesseract.cleanup(output_file_name)
         
 if __name__ == '__main__':
-    linedir = '/home/loitg/workspace/clocr/temp/0/'
+    linedir = TEMPORARY_PATH + '0/'
     for linepath in os.listdir(linedir):
         oriLine = cv2.imread(linedir+linepath)
         extLine = pipolarRotateExtractLine(oriLine, 0.5)

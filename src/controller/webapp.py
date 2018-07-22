@@ -8,7 +8,7 @@ import os
 from flask import Flask, request, redirect, url_for
 from werkzeug.utils import secure_filename
 from utils.common import createLogger
-from controller.cmnd9processer import Cmnd9Processer
+from controller.idcardprocesser import IdCardProcesser
 from utils.common import args
 
 app = Flask(__name__)
@@ -26,7 +26,7 @@ def upload_file():
     ### Init variables
     global mtreader, logger
     bzid = 'cmnd9'
-    processer_cls = Cmnd9Processer
+    processer_cls = IdCardProcesser
     ### start function
     if mtreader is None:
         logger = createLogger(bzid, args.logsdir)
@@ -62,7 +62,7 @@ def upload_file():
 
            
 if __name__ == '__main__':
-    app.run(port=int("8080"))
+    app.run(port=int("8080"), host='0.0.0.0')
     
     
     
