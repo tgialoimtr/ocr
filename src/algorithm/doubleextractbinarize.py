@@ -46,7 +46,7 @@ def stddirection(a):
     
 def pipolarRotateExtractLine(img_col, expand):
     img_col = img_col.astype(np.float32)/255.0
-    cv2.imshow('col', img_col)
+#     cv2.imshow('col', img_col)
     
     img_dn = img_col.reshape(-1,3)
     img_dn = img_dn
@@ -80,7 +80,7 @@ def pipolarRotateExtractLine(img_col, expand):
     
     bottom = cv2.normalize((grad_dot_bin<0)*(-grad_dot_bin), None, 0.0, 0.99, cv2.NORM_MINMAX)
     top = cv2.normalize((grad_dot_bin>0)*grad_dot_bin, None, 0.0, 0.99, cv2.NORM_MINMAX)
-    cv2.imshow('dot', dotremoved*240)
+#     cv2.imshow('dot', dotremoved*240)
 
     ### PROJECTION PROFILE
     _,y0, y1 = extractLine(dotremoved, bottom, top)[0]

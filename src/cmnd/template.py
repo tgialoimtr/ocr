@@ -112,8 +112,8 @@ class StaticTemplate(object):
     
             rs_img = four_point_transform(img, dst.reshape(-1,2))
             rs_img = cv2.resize(rs_img, (w,h))
-            print 'findHomography ', time()-tt
-            print 'mean', np.mean(mask)
+#             print 'findHomography ', time()-tt
+#             print 'mean', np.mean(mask)
 #             cv2.imshow('img', rs_img)
 #             cv2.waitKey(-1)
             for tag, linetempl in self.tpl_lines.iteritems():

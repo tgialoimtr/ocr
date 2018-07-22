@@ -79,6 +79,6 @@ class KeyPointCalc(object):
             m,n = temp
             if m.distance < 0.7*n.distance:
                 good.append(m)
-        print 'good ',  len(good)
-        print 'matching ', time()-tt
+#         print 'good ',  len(good)
+#         print 'matching ', time()-tt
         return good
