@@ -113,7 +113,7 @@ Edit TEMPORARY_PATH to absolute path of "ocr/temp", which should be ~/workspace/
     cd ~/workspace/ocr/src
     PYTHONPATH=`pwd` python controller/webapp.py
 
-Access <server-address>:8080/ocr/cmnd9
+Access  < server-address > :8080/ocr/cmnd9
 
 Upload image of CMND (new, old, ...) to demo
 
