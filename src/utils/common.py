@@ -16,6 +16,7 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 
 TEMPORARY_PATH = '/home/loitg/workspace/clocr/temp/'
+RESOURCE_PATH = '/home/loitg/workspace/clocr/resource/'
 
 cmnd_path = '/home/loitg/workspace/cmnd/scanned/'
 cmnd_path = '/home/loitg/workspace/receipttest/img/'
