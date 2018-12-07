@@ -86,6 +86,7 @@ def pipolarRotateExtractLine(img_col, expand):
     _,y0, y1 = extractLine(dotremoved, bottom, top)[0]
     rotM = cv2.getRotationMatrix2D((dotremoved.shape[1]/2,dotremoved.shape[0]/2),a,1)
     rotated_grey = cv2.warpAffine(img_grey,rotM,(dotremoved.shape[1],dotremoved.shape[0]))
+    expand = int(expand*rotated_grey.shape[0])
     y0, y1 = expands(0, rotated_grey.shape[0], y0, y1, expand)
     line = rotated_grey[y0:y1, :]
     return line
@@ -143,7 +144,7 @@ def extractLine(binimg, bottom, top):
 if __name__ == '__main__':
     linedir = '/home/loitg/workspace/clocr/temp/0/'
     for linepath in os.listdir(linedir):
-        line = pipolarRotateExtractLine(cv2.imread(linedir+linepath))
+        line = pipolarRotateExtractLine(cv2.imread(linedir+linepath), 0.1)
         cv2.imshow('line', line)
         cv2.waitKey(-1)
     
